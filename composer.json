@@ -23,7 +23,7 @@
   "require": {
     "php": ">=5.5.0",
     "league/flysystem": "^1.0.40",
-    "aliyuncs/oss-sdk-php": "~2.0"
+    "aliyuncs/oss-sdk-php": "~2.2"
   },
   "autoload": {
     "psr-4": {
