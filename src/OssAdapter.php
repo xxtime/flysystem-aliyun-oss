@@ -70,6 +70,7 @@ class OssAdapter extends AbstractAdapter
      */
     public function writeStream($path, $resource, Config $config)
     {
+        return false;
     }
 
     /**
@@ -83,6 +84,7 @@ class OssAdapter extends AbstractAdapter
      */
     public function update($path, $contents, Config $config)
     {
+        return $this->oss->putObject($this->bucket, $path, $contents);
     }
 
     /**
@@ -96,6 +98,7 @@ class OssAdapter extends AbstractAdapter
      */
     public function updateStream($path, $resource, Config $config)
     {
+        return false;
     }
 
     /**
@@ -108,6 +111,9 @@ class OssAdapter extends AbstractAdapter
      */
     public function rename($path, $newpath)
     {
+        $this->oss->copyObject($this->bucket, $path, $this->bucket, $newpath);
+        $this->oss->deleteObject($this->bucket, $path);
+        return true;
     }
 
     /**
@@ -120,6 +126,8 @@ class OssAdapter extends AbstractAdapter
      */
     public function copy($path, $newpath)
     {
+        $this->oss->copyObject($this->bucket, $path, $this->bucket, $newpath);
+        return true;
     }
 
     /**
@@ -131,6 +139,8 @@ class OssAdapter extends AbstractAdapter
      */
     public function delete($path)
     {
+        $this->oss->deleteObject($this->bucket, $path);
+        return true;
     }
 
     /**
@@ -142,6 +152,7 @@ class OssAdapter extends AbstractAdapter
      */
     public function deleteDir($dirname)
     {
+        return false;
     }
 
     /**
@@ -154,6 +165,8 @@ class OssAdapter extends AbstractAdapter
      */
     public function createDir($dirname, Config $config)
     {
+        $this->oss->createObjectDir($this->bucket, $dirname);
+        return true;
     }
 
     /**
@@ -166,6 +179,7 @@ class OssAdapter extends AbstractAdapter
      */
     public function setVisibility($path, $visibility)
     {
+        return false;
     }
 
 
@@ -178,6 +192,7 @@ class OssAdapter extends AbstractAdapter
      */
     public function has($path)
     {
+        return $this->oss->doesObjectExist($this->bucket, $path);
     }
 
     /**
@@ -189,6 +204,9 @@ class OssAdapter extends AbstractAdapter
      */
     public function read($path)
     {
+        return [
+            'contents' => $this->oss->getObject($this->bucket, $path)
+        ];
     }
 
     /**
@@ -200,6 +218,7 @@ class OssAdapter extends AbstractAdapter
      */
     public function readStream($path)
     {
+        return false;
     }
 
     /**
@@ -212,6 +231,17 @@ class OssAdapter extends AbstractAdapter
      */
     public function listContents($directory = '', $recursive = false)
     {
+        return false;
+        $options = [
+            'max-keys'  => 100,
+            'prefix'    => $directory . '/',
+            'delimiter' => '/',
+            'marker'    => '',
+        ];
+        $res = $this->oss->listObjects($this->bucket, $options);
+
+        // todo :: array return
+        return $res->getObjectList();
     }
 
     /**
@@ -223,6 +253,7 @@ class OssAdapter extends AbstractAdapter
      */
     public function getMetadata($path)
     {
+        return $this->oss->getObjectMeta($this->bucket, $path);
     }
 
     /**
@@ -234,6 +265,10 @@ class OssAdapter extends AbstractAdapter
      */
     public function getSize($path)
     {
+        $response = $this->oss->getObjectMeta($this->bucket, $path);
+        return [
+            'size' => $response['content-length']
+        ];
     }
 
     /**
@@ -245,6 +280,10 @@ class OssAdapter extends AbstractAdapter
      */
     public function getMimetype($path)
     {
+        $response = $this->oss->getObjectMeta($this->bucket, $path);
+        return [
+            'mimetype' => $response['content-type']
+        ];
     }
 
     /**
@@ -256,6 +295,10 @@ class OssAdapter extends AbstractAdapter
      */
     public function getTimestamp($path)
     {
+        $response = $this->oss->getObjectMeta($this->bucket, $path);
+        return [
+            'timestamp' => $response['last-modified']
+        ];
     }
 
     /**
@@ -267,6 +310,10 @@ class OssAdapter extends AbstractAdapter
      */
     public function getVisibility($path)
     {
+        $response = $this->oss->getObjectAcl($this->bucket, $path);
+        return [
+            'visibility' => $response,
+        ];
     }
 
 }

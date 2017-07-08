@@ -13,7 +13,7 @@ composer require xxtime/flysystem-aliyun-oss
 
 ```php
 use League\Flysystem\Filesystem;
-use Xt\Flysystem\Aliyun\OssAdapter;
+use Xxtime\Flysystem\Aliyun\OssAdapter;
 
 $filesystem = new Filesystem(new OssAdapter([
     'access_id'     => 'aliyun access_key_id',
