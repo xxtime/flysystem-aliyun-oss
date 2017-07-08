@@ -1,6 +1,6 @@
 <?php
 
-namespace Xt\Flysystem\Aliyun;
+namespace Xxtime\Flysystem\Aliyun;
 
 
 use League\Flysystem\Adapter\AbstractAdapter;
