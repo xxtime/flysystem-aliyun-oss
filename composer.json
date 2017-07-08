@@ -1,8 +1,9 @@
 {
   "name": "xxtime/flysystem-aliyun-oss",
   "type": "library",
-  "description": "http://flysystem.thephpleague.com for aliyun OSS",
+  "description": "AliYun OSS adapter for flysystem. AliYun OSS v2.2.4",
   "keywords": [
+    "flysystem-aliyun-oss",
     "aliyun-oss",
     "flysystem"
   ],
