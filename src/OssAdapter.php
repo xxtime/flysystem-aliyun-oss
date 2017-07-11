@@ -83,7 +83,11 @@ class OssAdapter extends AbstractAdapter
      */
     public function writeStream($path, $resource, Config $config)
     {
-        return false;
+        $result = $this->write($path, stream_get_contents($resource), $config);
+        if (is_resource($resource)) {
+            fclose($resource);
+        }
+        return $result;
     }
 
     /**
@@ -111,7 +115,11 @@ class OssAdapter extends AbstractAdapter
      */
     public function updateStream($path, $resource, Config $config)
     {
-        return false;
+        $result = $this->write($path, stream_get_contents($resource), $config);
+        if (is_resource($resource)) {
+            fclose($resource);
+        }
+        return $result;
     }
 
     /**
@@ -231,7 +239,10 @@ class OssAdapter extends AbstractAdapter
      */
     public function readStream($path)
     {
-        return false;
+        $resource = 'http://' . $this->bucket . '.' . $this->endpoint . '/' . $path;
+        return [
+            'stream' => $resource = fopen($resource, 'r')
+        ];
     }
 
     /**
