@@ -7,6 +7,7 @@ use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Config;
 use League\Flysystem\Util;
 use OSS\OssClient;
+use Exception;
 
 class OssAdapter extends AbstractAdapter
 {
@@ -28,19 +29,31 @@ class OssAdapter extends AbstractAdapter
 
     /**
      * OssAdapter constructor.
+     * @param array $config
+     * @throws Exception
      */
     public function __construct($config = [])
     {
+        $isCName = false;
+        $securityToken = null;
         try {
             $this->bucket = $config['bucket'];
             empty($config['endpoint']) ? null : $this->endpoint = $config['endpoint'];
             empty($config['timeout']) ? $config['timeout'] = 3600 : null;
             empty($config['connectTimeout']) ? $config['connectTimeout'] = 10 : null;
 
-            $this->oss = new OssClient($config['access_id'], $config['access_secret'], $this->endpoint);
+            if (!empty($config['isCName'])) {
+                $isCName = true;
+            }
+            if (!empty($config['securityToken'])) {
+                $securityToken = $config['securityToken'];
+            }
+            $this->oss = new OssClient(
+                $config['access_id'], $config['access_secret'], $this->endpoint, $isCName, $securityToken
+            );
             $this->oss->setTimeout($config['timeout']);
             $this->oss->setConnectTimeout($config['connectTimeout']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw $e;
         }
     }

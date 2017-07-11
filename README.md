@@ -17,9 +17,9 @@ use League\Flysystem\Filesystem;
 use Xxtime\Flysystem\Aliyun\OssAdapter;
 
 $filesystem = new Filesystem(new OssAdapter([
-    'access_id'     => 'aliyun access_key_id',
-    'access_secret' => 'aliyun access_key_secret',
-    'bucket'        => 'aliyun bucket',
+    'access_id'     => 'access_key_id',
+    'access_secret' => 'access_key_secret',
+    'bucket'        => 'bucket name',
 
     // 'endpoint'       => 'oss-cn-shanghai.aliyuncs.com',
     // 'timeout'        => 3600,
