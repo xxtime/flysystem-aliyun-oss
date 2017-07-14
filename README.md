@@ -26,9 +26,31 @@ $filesystem = new Filesystem(new OssAdapter([
     // 'connectTimeout' => 10,
 ]));
 
+
+// Write Files
 $filesystem->write('path/to/file.txt', 'contents');
+
+// Update Files
+$filesystem->update('path/to/file.txt', 'new contents');
+
+// Check if a file exists
+$exists = $filesystem->has('path/to/file.txt');
+
+// Read Files
+$contents = $filesystem->read('path/to/file.txt');
+
+// Delete Files
+$filesystem->delete('path/to/file.txt');
+
+// Rename Files
+$filesystem->rename('filename.txt', 'newname.txt');
+
+// Copy Files
+$filesystem->copy('filename.txt', 'duplicate.txt');
 ```
 
 ### Reference
-http://flysystem.thephpleague.com/api/  
-https://github.com/thephpleague/flysystem  
+[http://flysystem.thephpleague.com/api/](http://flysystem.thephpleague.com/api/)  
+[https://github.com/thephpleague/flysystem](https://github.com/thephpleague/flysystem)  
+[https://help.aliyun.com/document_detail/32099.html](https://help.aliyun.com/document_detail/32099.html)  
+
