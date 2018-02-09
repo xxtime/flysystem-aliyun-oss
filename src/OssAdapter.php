@@ -246,6 +246,7 @@ class OssAdapter extends AbstractAdapter
     }
 
     /**
+     * TODO :: 暂未支持递归查询子目录
      * List contents of a directory.
      *
      * @param string $directory
@@ -255,17 +256,49 @@ class OssAdapter extends AbstractAdapter
      */
     public function listContents($directory = '', $recursive = false)
     {
-        return false;
-        $options = [
-            'max-keys'  => 100,
-            'prefix'    => $directory . '/',
-            'delimiter' => '/',
-            'marker'    => '',
-        ];
-        $res = $this->oss->listObjects($this->bucket, $options);
+        $result = [];
+        $nextMarker = '';
+        while (true) {
+            // max-keys 用于限定此次返回object的最大数，如果不设定，默认为100，max-keys取值不能大于1000。
+            // prefix   限定返回的object key必须以prefix作为前缀。注意使用prefix查询时，返回的key中仍会包含prefix。
+            // delimiter是一个用于对Object名字进行分组的字符。所有名字包含指定的前缀且第一次出现delimiter字符之间的object作为一组元素
+            // marker   用户设定结果从marker之后按字母排序的第一个开始返回。
+            $options = [
+                'max-keys'  => 1000,
+                'prefix'    => $directory . '/',
+                'delimiter' => '/',
+                'marker'    => $nextMarker,
+            ];
+            $res = $this->oss->listObjects($this->bucket, $options);
 
-        // todo :: array return
-        return $res->getObjectList();
+            // 得到nextMarker，从上一次$res读到的最后一个文件的下一个文件开始继续获取文件列表
+            $nextMarker = $res->getNextMarker();
+            $prefixList = $res->getPrefixList(); // 目录列表
+            $objectList = $res->getObjectList(); // 文件列表
+            if ($nextMarker === '') {
+                break;
+            }
+            if ($prefixList) {
+                foreach ($prefixList as $value) {
+                    $result[] = [
+                        'type' => 'dir',
+                        'path' => $value->getPrefix()
+                    ];
+                }
+            }
+            if ($objectList) {
+                foreach ($objectList as $value) {
+                    $result[] = [
+                        'type'      => 'file',
+                        'path'      => $value->getKey(),
+                        'timestamp' => strtotime($value->getLastModified()),
+                        'size'      => $value->getSize()
+                    ];
+                }
+            }
+        }
+
+        return $result;
     }
 
     /**

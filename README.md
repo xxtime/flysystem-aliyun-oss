@@ -34,6 +34,13 @@ $filesystem = new Filesystem(new OssAdapter([
 // Write Files
 $filesystem->write('path/to/file.txt', 'contents');
 
+// Write Use writeStream
+$stream = fopen('local/path/to/file.txt', 'r+');
+$result = $filesystem->writeStream('path/to/file.txt', $stream);
+if (is_resource($stream)) {
+    fclose($stream);
+}
+
 // Update Files
 $filesystem->update('path/to/file.txt', 'new contents');
 
@@ -51,6 +58,10 @@ $filesystem->rename('filename.txt', 'newname.txt');
 
 // Copy Files
 $filesystem->copy('filename.txt', 'duplicate.txt');
+
+
+// list the contents (not support recursive now)
+$filesystem->listContents('path', false);
 ```
 
 ## Reference
