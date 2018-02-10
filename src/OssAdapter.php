@@ -206,10 +206,17 @@ class OssAdapter extends AbstractAdapter
      * @param string $visibility
      *
      * @return array|false file meta data
+     *
+     * Aliyun OSS ACL value: 'default', 'private', 'public-read', 'public-read-write'
      */
     public function setVisibility($path, $visibility)
     {
-        return false;
+        $this->oss->putObjectAcl(
+            $this->bucket,
+            $path,
+            ($visibility == 'public') ? 'public-read' : 'private'
+        );
+        return true;
     }
 
 
