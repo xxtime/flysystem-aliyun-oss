@@ -275,9 +275,6 @@ class OssAdapter extends AbstractAdapter
             $nextMarker = $res->getNextMarker();
             $prefixList = $res->getPrefixList(); // 目录列表
             $objectList = $res->getObjectList(); // 文件列表
-            if ($nextMarker === '') {
-                break;
-            }
             if ($prefixList) {
                 foreach ($prefixList as $value) {
                     $result[] = [
@@ -295,6 +292,9 @@ class OssAdapter extends AbstractAdapter
                         'size'      => $value->getSize()
                     ];
                 }
+            }
+            if ($nextMarker === '') {
+                break;
             }
         }
 
