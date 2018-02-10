@@ -173,7 +173,16 @@ class OssAdapter extends AbstractAdapter
      */
     public function deleteDir($dirname)
     {
-        return false;
+        $lists = $this->listContents($dirname, true);
+        if (!$lists) {
+            return false;
+        }
+        $objectList = [];
+        foreach ($lists as $value) {
+            $objectList[] = $value['path'];
+        }
+        $this->oss->deleteObjects($this->bucket, $objectList);
+        return true;
     }
 
     /**
@@ -246,7 +255,6 @@ class OssAdapter extends AbstractAdapter
     }
 
     /**
-     * TODO :: 暂未支持递归查询子目录
      * List contents of a directory.
      *
      * @param string $directory
@@ -256,6 +264,8 @@ class OssAdapter extends AbstractAdapter
      */
     public function listContents($directory = '', $recursive = false)
     {
+        $directory = rtrim($directory, '\\/');
+
         $result = [];
         $nextMarker = '';
         while (true) {
@@ -281,10 +291,16 @@ class OssAdapter extends AbstractAdapter
                         'type' => 'dir',
                         'path' => $value->getPrefix()
                     ];
+                    if ($recursive) {
+                        $result = array_merge($result, $this->listContents($value->getPrefix(), $recursive));
+                    }
                 }
             }
             if ($objectList) {
                 foreach ($objectList as $value) {
+                    if (($value->getSize() === 0) && ($value->getKey() === $directory . '/')) {
+                        continue;
+                    }
                     $result[] = [
                         'type'      => 'file',
                         'path'      => $value->getKey(),
