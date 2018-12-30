@@ -14,6 +14,12 @@ AliYun OSS Storage adapter for flysystem - a PHP filesystem abstraction.
 ## Installation
 composer require xxtime/flysystem-aliyun-oss
 
+## Logs
+##### 1.3.0 
+ 1. some args name changed  
+ 2. default region oss-cn-hangzhou  
+
+
 ## Usage
 
 ```php
@@ -21,13 +27,14 @@ use League\Flysystem\Filesystem;
 use Xxtime\Flysystem\Aliyun\OssAdapter;
 
 $filesystem = new Filesystem(new OssAdapter([
-    'access_id'     => 'access_key_id',
-    'access_secret' => 'access_key_secret',
-    'bucket'        => 'bucket name',
-
-    // 'endpoint'       => 'oss-cn-shanghai.aliyuncs.com',
+    'accessId'       => '<aliyun access id>',
+    'accessSecret'   => '<aliyun access secret>',
+    'bucket'         => '<bucket name>',
+    'endpoint'       => '<endpoint address>',
     // 'timeout'        => 3600,
     // 'connectTimeout' => 10,
+    // 'isCName'        => false,
+    // 'token'          => '',
 ]));
 
 
@@ -64,8 +71,13 @@ $filesystem->copy('filename.txt', 'duplicate.txt');
 $filesystem->listContents('path', false);
 ```
 
+## Document
+ 1. [Region And Endpoint Table](https://help.aliyun.com/document_detail/31837.html)  
+ 2. [Aliyun OSS PHP SDK Document](https://help.aliyun.com/document_detail/85580.html)  
+
+
 ## Reference
 [http://flysystem.thephpleague.com/api/](http://flysystem.thephpleague.com/api/)  
 [https://github.com/thephpleague/flysystem](https://github.com/thephpleague/flysystem)  
-[https://help.aliyun.com/document_detail/32099.html](https://help.aliyun.com/document_detail/32099.html)  
+  
 

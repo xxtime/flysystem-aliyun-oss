@@ -25,7 +25,7 @@ class OssAdapter extends AbstractAdapter
     /**
      * @var string
      */
-    private $endpoint = 'oss-cn-shanghai.aliyuncs.com';
+    private $endpoint = 'oss-cn-hangzhou.aliyuncs.com';
 
     /**
      * OssAdapter constructor.
@@ -35,7 +35,7 @@ class OssAdapter extends AbstractAdapter
     public function __construct($config = [])
     {
         $isCName = false;
-        $securityToken = null;
+        $token = null;
         try {
             $this->bucket = $config['bucket'];
             empty($config['endpoint']) ? null : $this->endpoint = $config['endpoint'];
@@ -45,11 +45,11 @@ class OssAdapter extends AbstractAdapter
             if (!empty($config['isCName'])) {
                 $isCName = true;
             }
-            if (!empty($config['securityToken'])) {
-                $securityToken = $config['securityToken'];
+            if (!empty($config['token'])) {
+                $token = $config['token'];
             }
             $this->oss = new OssClient(
-                $config['access_id'], $config['access_secret'], $this->endpoint, $isCName, $securityToken
+                $config['accessId'], $config['accessSecret'], $this->endpoint, $isCName, $token
             );
             $this->oss->setTimeout($config['timeout']);
             $this->oss->setConnectTimeout($config['connectTimeout']);
