@@ -1,7 +1,7 @@
 {
   "name": "xxtime/flysystem-aliyun-oss",
   "type": "library",
-  "description": "AliYun OSS adapter for flysystem.",
+  "description": "AliYun OSS adapter for flysystem. aliyuncs/oss-sdk-php ~2.3",
   "keywords": [
     "flysystem-aliyun-oss",
     "aliyun-oss",

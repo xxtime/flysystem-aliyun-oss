@@ -69,7 +69,15 @@ class OssAdapter extends AbstractAdapter
      */
     public function write($path, $contents, Config $config)
     {
-        return $this->oss->putObject($this->bucket, $path, $contents);
+        $options = [];
+        if ($config->has("Content-Type")) {
+            $options["Content-Type"] = $config->get("Content-Type");
+        }
+        if ($config->has("Content-Md5")) {
+            $options["Content-Md5"] = $config->get("Content-Md5");
+            $options["checkmd5"] = false;
+        }
+        return $this->oss->putObject($this->bucket, $path, $contents, $options);
     }
 
     /**
@@ -101,7 +109,15 @@ class OssAdapter extends AbstractAdapter
      */
     public function update($path, $contents, Config $config)
     {
-        return $this->oss->putObject($this->bucket, $path, $contents);
+        $options = [];
+        if ($config->has("Content-Type")) {
+            $options["Content-Type"] = $config->get("Content-Type");
+        }
+        if ($config->has("Content-Md5")) {
+            $options["Content-Md5"] = $config->get("Content-Md5");
+            $options["checkmd5"] = false;
+        }
+        return $this->oss->putObject($this->bucket, $path, $contents, $options);
     }
 
     /**
@@ -218,7 +234,6 @@ class OssAdapter extends AbstractAdapter
         );
         return true;
     }
-
 
     /**
      * Check whether a file exists.
