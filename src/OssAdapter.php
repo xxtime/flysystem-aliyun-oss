@@ -17,6 +17,12 @@ class OssAdapter extends AbstractAdapter
      */
     private $oss;
 
+
+    /**
+     * @var Supports
+     */
+    public $supports;
+
     /**
      * @var AliYun bucket
      */
@@ -36,6 +42,7 @@ class OssAdapter extends AbstractAdapter
     {
         $isCName = false;
         $token = null;
+        $this->supports = new Supports();
         try {
             $this->bucket = $config['bucket'];
             empty($config['endpoint']) ? null : $this->endpoint = $config['endpoint'];
@@ -77,7 +84,9 @@ class OssAdapter extends AbstractAdapter
             $options["Content-Md5"] = $config->get("Content-Md5");
             $options["checkmd5"] = false;
         }
-        return $this->oss->putObject($this->bucket, $path, $contents, $options);
+        $result = $this->oss->putObject($this->bucket, $path, $contents, $options);
+        $this->supports->setFlashData($result);
+        return $result;
     }
 
     /**
@@ -117,7 +126,9 @@ class OssAdapter extends AbstractAdapter
             $options["Content-Md5"] = $config->get("Content-Md5");
             $options["checkmd5"] = false;
         }
-        return $this->oss->putObject($this->bucket, $path, $contents, $options);
+        $result = $this->oss->putObject($this->bucket, $path, $contents, $options);
+        $this->supports->setFlashData($result);
+        return $result;
     }
 
     /**

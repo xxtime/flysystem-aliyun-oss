@@ -26,7 +26,7 @@ composer require xxtime/flysystem-aliyun-oss
 use League\Flysystem\Filesystem;
 use Xxtime\Flysystem\Aliyun\OssAdapter;
 
-$filesystem = new Filesystem(new OssAdapter([
+$aliyun = new OssAdapter([
     'accessId'       => '<aliyun access id>',
     'accessSecret'   => '<aliyun access secret>',
     'bucket'         => '<bucket name>',
@@ -35,11 +35,14 @@ $filesystem = new Filesystem(new OssAdapter([
     // 'connectTimeout' => 10,
     // 'isCName'        => false,
     // 'token'          => '',
-]));
+]);
+$filesystem = new Filesystem($aliyun);
 
 
 // Write Files
 $filesystem->write('path/to/file.txt', 'contents');
+// get RAW data from aliYun OSS
+$raw = $aliyun->supports->getFlashData();
 
 // Write Use writeStream
 $stream = fopen('local/path/to/file.txt', 'r+');
@@ -69,6 +72,11 @@ $filesystem->copy('filename.txt', 'duplicate.txt');
 
 // list the contents (not support recursive now)
 $filesystem->listContents('path', false);
+```
+```php
+// 说明：此方法返回从阿里云接口返回的原生数据，仅可调用一次
+// DESC: this function return AliYun RAW data
+$raw = $aliyun->supports->getFlashData();
 ```
 
 ## Document
