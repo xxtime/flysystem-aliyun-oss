@@ -29,8 +29,10 @@ class uploadWithContentType
 
         // 设置属性
         // 如设置了Content-Type，则可以不指定路径的后缀 (即$filePath可以不包含.jpg等后缀名)
+        $fInfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $fInfo->buffer($fileContent);
         $config = [
-            "Content-Type" => $fInfo->buffer($fileContent)
+            "Content-Type" => $mimeType
         ];
         $filePath = "uploadPathTest/" . time();
 
