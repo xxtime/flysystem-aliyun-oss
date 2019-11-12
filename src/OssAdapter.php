@@ -91,11 +91,21 @@ class OssAdapter extends AbstractAdapter
      */
     public function writeStream($path, $resource, Config $config)
     {
-        $result = $this->write($path, stream_get_contents($resource), $config);
-        if (is_resource($resource)) {
-            fclose($resource);
+        if (!is_resource($resource)) {
+            return false;
         }
-        return $result;
+        $i          = 0;
+        $bufferSize = 1000000; // 1M
+        while (!feof($resource)) {
+            if (false === $buffer = fread($resource, $block = $bufferSize)) {
+                return false;
+            }
+            $position = $i * $bufferSize;
+            $size     = $this->oss->appendObject($this->bucket, $path, $buffer, $position, $this->getOssOptions($config));
+            $i++;
+        }
+        fclose($resource);
+        return true;
     }
 
     /**
