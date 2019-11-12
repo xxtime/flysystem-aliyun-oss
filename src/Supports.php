@@ -17,7 +17,7 @@ class Supports
 
     public function getFlashData()
     {
-        $flash = $this->flashData;
+        $flash           = $this->flashData;
         $this->flashData = null;
         return $flash;
     }

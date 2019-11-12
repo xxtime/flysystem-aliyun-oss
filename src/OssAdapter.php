@@ -13,15 +13,14 @@ class OssAdapter extends AbstractAdapter
 {
 
     /**
-     * @var OssClient
-     */
-    private $oss;
-
-
-    /**
      * @var Supports
      */
     public $supports;
+
+    /**
+     * @var OssClient
+     */
+    private $oss;
 
     /**
      * @var AliYun bucket
@@ -40,8 +39,8 @@ class OssAdapter extends AbstractAdapter
      */
     public function __construct($config = [])
     {
-        $isCName = false;
-        $token = null;
+        $isCName        = false;
+        $token          = null;
         $this->supports = new Supports();
         try {
             $this->bucket = $config['bucket'];
@@ -64,30 +63,6 @@ class OssAdapter extends AbstractAdapter
             throw $e;
         }
     }
-    
-        /**
-     * get OSS Options
-     * @param Config $config
-     * @return array
-     */
-    public function getOssOptions(Config $config)
-    {
-        $options = [];
-        if ($config->has("headers")) {
-            $options['headers'] = $config->get("headers");
-        }
-
-        if ($config->has("Content-Type")) {
-            $options["Content-Type"] = $config->get("Content-Type");
-        }
-
-        if ($config->has("Content-Md5")) {
-            $options["Content-Md5"] = $config->get("Content-Md5");
-            $options["checkmd5"]    = false;
-        }
-        return $options;
-    }
-
 
     /**
      * Write a new file.
@@ -307,7 +282,7 @@ class OssAdapter extends AbstractAdapter
     {
         $directory = rtrim($directory, '\\/');
 
-        $result = [];
+        $result     = [];
         $nextMarker = '';
         while (true) {
             // max-keys 用于限定此次返回object的最大数，如果不设定，默认为100，max-keys取值不能大于1000。
@@ -320,7 +295,7 @@ class OssAdapter extends AbstractAdapter
                 'delimiter' => '/',
                 'marker'    => $nextMarker,
             ];
-            $res = $this->oss->listObjects($this->bucket, $options);
+            $res     = $this->oss->listObjects($this->bucket, $options);
 
             // 得到nextMarker，从上一次$res读到的最后一个文件的下一个文件开始继续获取文件列表
             $nextMarker = $res->getNextMarker();
@@ -428,6 +403,29 @@ class OssAdapter extends AbstractAdapter
         return [
             'visibility' => $response,
         ];
+    }
+
+    /**
+     * Get OSS Options
+     * @param Config $config
+     * @return array
+     */
+    private function getOssOptions(Config $config)
+    {
+        $options = [];
+        if ($config->has("headers")) {
+            $options['headers'] = $config->get("headers");
+        }
+
+        if ($config->has("Content-Type")) {
+            $options["Content-Type"] = $config->get("Content-Type");
+        }
+
+        if ($config->has("Content-Md5")) {
+            $options["Content-Md5"] = $config->get("Content-Md5");
+            $options["checkmd5"]    = false;
+        }
+        return $options;
     }
 
 }
