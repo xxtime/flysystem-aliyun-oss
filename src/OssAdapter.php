@@ -64,6 +64,30 @@ class OssAdapter extends AbstractAdapter
             throw $e;
         }
     }
+    
+        /**
+     * get OSS Options
+     * @param Config $config
+     * @return array
+     */
+    public function getOssOptions(Config $config)
+    {
+        $options = [];
+        if ($config->has("headers")) {
+            $options['headers'] = $config->get("headers");
+        }
+
+        if ($config->has("Content-Type")) {
+            $options["Content-Type"] = $config->get("Content-Type");
+        }
+
+        if ($config->has("Content-Md5")) {
+            $options["Content-Md5"] = $config->get("Content-Md5");
+            $options["checkmd5"]    = false;
+        }
+        return $options;
+    }
+
 
     /**
      * Write a new file.
@@ -76,15 +100,7 @@ class OssAdapter extends AbstractAdapter
      */
     public function write($path, $contents, Config $config)
     {
-        $options = [];
-        if ($config->has("Content-Type")) {
-            $options["Content-Type"] = $config->get("Content-Type");
-        }
-        if ($config->has("Content-Md5")) {
-            $options["Content-Md5"] = $config->get("Content-Md5");
-            $options["checkmd5"] = false;
-        }
-        $result = $this->oss->putObject($this->bucket, $path, $contents, $options);
+        $result = $this->oss->putObject($this->bucket, $path, $contents, $this->getOssOptions($config));
         $this->supports->setFlashData($result);
         return $result;
     }
@@ -118,15 +134,7 @@ class OssAdapter extends AbstractAdapter
      */
     public function update($path, $contents, Config $config)
     {
-        $options = [];
-        if ($config->has("Content-Type")) {
-            $options["Content-Type"] = $config->get("Content-Type");
-        }
-        if ($config->has("Content-Md5")) {
-            $options["Content-Md5"] = $config->get("Content-Md5");
-            $options["checkmd5"] = false;
-        }
-        $result = $this->oss->putObject($this->bucket, $path, $contents, $options);
+        $result = $this->oss->putObject($this->bucket, $path, $contents, $this->getOssOptions($config));
         $this->supports->setFlashData($result);
         return $result;
     }
