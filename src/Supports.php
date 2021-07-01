@@ -1,14 +1,12 @@
 <?php
 
-namespace Xxtime\Flysystem\Aliyun;
+declare(strict_types=1);
 
-use League\Flysystem\Config;
+namespace Xxtime\Flysystem\Aliyun;
 
 class Supports
 {
-
-    private $flashData = null;
-
+    private $flashData;
 
     public function setFlashData($data = null)
     {
@@ -17,9 +15,8 @@ class Supports
 
     public function getFlashData()
     {
-        $flash           = $this->flashData;
+        $flash = $this->flashData;
         $this->flashData = null;
         return $flash;
     }
-
 }
