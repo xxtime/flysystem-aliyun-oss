@@ -1,17 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Xxtime\Flysystem\Aliyun;
 
-
-use League\Flysystem\Adapter\AbstractAdapter;
-use League\Flysystem\Config;
-use League\Flysystem\Util;
-use OSS\OssClient;
 use Exception;
+use League\Flysystem\Config;
+use League\Flysystem\FileAttributes;
+use League\Flysystem\FilesystemAdapter;
+use League\Flysystem\UnableToWriteFile;
+use OSS\OssClient;
 
-class OssAdapter extends AbstractAdapter
+class OssAdapter implements FilesystemAdapter
 {
-
     /**
      * @var Supports
      */
@@ -39,149 +40,88 @@ class OssAdapter extends AbstractAdapter
      */
     public function __construct($config = [])
     {
-        $isCName        = false;
-        $token          = null;
+        $isCName = false;
+        $token = null;
         $this->supports = new Supports();
-        try {
-            $this->bucket = $config['bucket'];
-            empty($config['endpoint']) ? null : $this->endpoint = $config['endpoint'];
-            empty($config['timeout']) ? $config['timeout'] = 3600 : null;
-            empty($config['connectTimeout']) ? $config['connectTimeout'] = 10 : null;
+        $this->bucket = $config['bucket'];
+        empty($config['endpoint']) ? null : $this->endpoint = $config['endpoint'];
+        empty($config['timeout']) ? $config['timeout'] = 3600 : null;
+        empty($config['connectTimeout']) ? $config['connectTimeout'] = 10 : null;
 
-            if (!empty($config['isCName'])) {
-                $isCName = true;
-            }
-            if (!empty($config['token'])) {
-                $token = $config['token'];
-            }
-            $this->oss = new OssClient(
-                $config['accessId'], $config['accessSecret'], $this->endpoint, $isCName, $token
-            );
-            $this->oss->setTimeout($config['timeout']);
-            $this->oss->setConnectTimeout($config['connectTimeout']);
-        } catch (Exception $e) {
-            throw $e;
+        if (! empty($config['isCName'])) {
+            $isCName = true;
         }
+        if (! empty($config['token'])) {
+            $token = $config['token'];
+        }
+        $this->oss = new OssClient(
+            $config['accessId'],
+            $config['accessSecret'],
+            $this->endpoint,
+            $isCName,
+            $token
+        );
+        $this->oss->setTimeout($config['timeout']);
+        $this->oss->setConnectTimeout($config['connectTimeout']);
     }
 
     /**
      * Write a new file.
-     *
-     * @param string $path
-     * @param string $contents
-     * @param Config $config Config object
-     *
-     * @return array|false false on failure file meta data on success
      */
-    public function write($path, $contents, Config $config)
+    public function write(string $path, string $contents, Config $config): void
     {
         $result = $this->oss->putObject($this->bucket, $path, $contents, $this->getOssOptions($config));
         $this->supports->setFlashData($result);
-        return $result;
     }
 
     /**
      * Write a new file using a stream.
      *
-     * @param string $path
-     * @param resource $resource
-     * @param Config $config Config object
-     *
-     * @return array|false false on failure file meta data on success
+     * @param resource $contents
      */
-    public function writeStream($path, $resource, Config $config)
+    public function writeStream(string $path, $contents, Config $config): void
     {
-        if (!is_resource($resource)) {
-            return false;
+        if (! is_resource($contents)) {
+            throw UnableToWriteFile::atLocation($path, 'The contents is invalid resource.');
         }
-        $i          = 0;
+        $i = 0;
         $bufferSize = 1000000; // 1M
-        while (!feof($resource)) {
-            if (false === $buffer = fread($resource, $block = $bufferSize)) {
-                return false;
+        while (! feof($contents)) {
+            if (false === $buffer = fread($contents, $block = $bufferSize)) {
+                throw UnableToWriteFile::atLocation($path, 'fread failed');
             }
             $position = $i * $bufferSize;
-            $size     = $this->oss->appendObject($this->bucket, $path, $buffer, $position, $this->getOssOptions($config));
-            $i++;
+            $size = $this->oss->appendObject($this->bucket, $path, $buffer, $position, $this->getOssOptions($config));
+            ++$i;
         }
-        fclose($resource);
-        return true;
-    }
-
-    /**
-     * Update a file.
-     *
-     * @param string $path
-     * @param string $contents
-     * @param Config $config Config object
-     *
-     * @return array|false false on failure file meta data on success
-     */
-    public function update($path, $contents, Config $config)
-    {
-        $result = $this->oss->putObject($this->bucket, $path, $contents, $this->getOssOptions($config));
-        $this->supports->setFlashData($result);
-        return $result;
-    }
-
-    /**
-     * Update a file using a stream.
-     *
-     * @param string $path
-     * @param resource $resource
-     * @param Config $config Config object
-     *
-     * @return array|false false on failure file meta data on success
-     */
-    public function updateStream($path, $resource, Config $config)
-    {
-        $result = $this->write($path, stream_get_contents($resource), $config);
-        if (is_resource($resource)) {
-            fclose($resource);
-        }
-        return $result;
+        fclose($contents);
     }
 
     /**
      * Rename a file.
-     *
-     * @param string $path
-     * @param string $newpath
-     *
-     * @return bool
      */
-    public function rename($path, $newpath)
+    public function move(string $source, string $destination, Config $config): void
     {
-        $this->oss->copyObject($this->bucket, $path, $this->bucket, $newpath);
-        $this->oss->deleteObject($this->bucket, $path);
-        return true;
+        $this->oss->copyObject($this->bucket, $source, $this->bucket, $destination);
+        $this->oss->deleteObject($this->bucket, $source);
     }
 
     /**
      * Copy a file.
-     *
-     * @param string $path
-     * @param string $newpath
-     *
-     * @return bool
      */
-    public function copy($path, $newpath)
+    public function copy(string $source, string $destination, Config $config): void
     {
-        $this->oss->copyObject($this->bucket, $path, $this->bucket, $newpath);
-        return true;
+        $this->oss->copyObject($this->bucket, $source, $this->bucket, $destination);
     }
 
     /**
      * Delete a file.
      *
-     * @param string $path
-     *
      * @return bool
      */
-    public function delete($path)
+    public function delete(string $path): void
     {
         $this->oss->deleteObject($this->bucket, $path);
-        return true;
     }
 
     /**
@@ -191,93 +131,74 @@ class OssAdapter extends AbstractAdapter
      *
      * @return bool
      */
-    public function deleteDir($dirname)
+    public function deleteDirectory(string $path): void
     {
-        $lists = $this->listContents($dirname, true);
-        if (!$lists) {
-            return false;
+        $lists = $this->listContents($path, true);
+        if (! $lists) {
+            return;
         }
         $objectList = [];
         foreach ($lists as $value) {
             $objectList[] = $value['path'];
         }
         $this->oss->deleteObjects($this->bucket, $objectList);
-        return true;
     }
 
     /**
      * Create a directory.
-     *
-     * @param string $dirname directory name
-     * @param Config $config
-     *
-     * @return array|false
      */
-    public function createDir($dirname, Config $config)
+    public function createDirectory(string $path, Config $config): void
     {
-        $this->oss->createObjectDir($this->bucket, $dirname);
-        return true;
+        $this->oss->createObjectDir($this->bucket, $path);
     }
 
     /**
      * Set the visibility for a file.
      *
-     * @param string $path
-     * @param string $visibility
-     *
      * @return array|false file meta data
      *
      * Aliyun OSS ACL value: 'default', 'private', 'public-read', 'public-read-write'
      */
-    public function setVisibility($path, $visibility)
+    public function setVisibility(string $path, string $visibility): void
     {
         $this->oss->putObjectAcl(
             $this->bucket,
             $path,
             ($visibility == 'public') ? 'public-read' : 'private'
         );
-        return true;
     }
 
     /**
      * Check whether a file exists.
-     *
-     * @param string $path
-     *
-     * @return array|bool|null
      */
-    public function has($path)
+    public function fileExists(string $path): bool
     {
         return $this->oss->doesObjectExist($this->bucket, $path);
     }
 
     /**
      * Read a file.
-     *
-     * @param string $path
-     *
-     * @return array|false
      */
-    public function read($path)
+    public function read(string $path): string
     {
-        return [
-            'contents' => $this->oss->getObject($this->bucket, $path)
-        ];
+        return $this->oss->getObject($this->bucket, $path);
     }
 
     /**
      * Read a file as a stream.
      *
-     * @param string $path
-     *
-     * @return array|false
+     * @return resource
      */
-    public function readStream($path)
+    public function readStream(string $path)
     {
-        $resource = 'http://' . $this->bucket . '.' . $this->endpoint . '/' . $path;
-        return [
-            'stream' => $resource = fopen($resource, 'r')
-        ];
+        $contents = $this->read($path);
+        $resource = fopen('php://temp', 'r+');
+        if ($contents !== '') {
+            fwrite($resource, $contents);
+            fseek($resource, 0);
+        }
+
+        return $resource;
     }
 
     /**
@@ -288,11 +209,11 @@ class OssAdapter extends AbstractAdapter
      *
      * @return array
      */
-    public function listContents($directory = '', $recursive = false)
+    public function listContents(string $path, bool $deep): iterable
     {
-        $directory = rtrim($directory, '\\/');
+        $directory = rtrim($path, '\\/');
 
-        $result     = [];
+        $result = [];
         $nextMarker = '';
         while (true) {
             // max-keys 用于限定此次返回object的最大数，如果不设定，默认为100，max-keys取值不能大于1000。
@@ -300,12 +221,12 @@ class OssAdapter extends AbstractAdapter
             // delimiter是一个用于对Object名字进行分组的字符。所有名字包含指定的前缀且第一次出现delimiter字符之间的object作为一组元素
             // marker   用户设定结果从marker之后按字母排序的第一个开始返回。
             $options = [
-                'max-keys'  => 1000,
-                'prefix'    => $directory . '/',
+                'max-keys' => 1000,
+                'prefix' => $directory . '/',
                 'delimiter' => '/',
-                'marker'    => $nextMarker,
+                'marker' => $nextMarker,
             ];
-            $res     = $this->oss->listObjects($this->bucket, $options);
+            $res = $this->oss->listObjects($this->bucket, $options);
 
             // 得到nextMarker，从上一次$res读到的最后一个文件的下一个文件开始继续获取文件列表
             $nextMarker = $res->getNextMarker();
@@ -315,10 +236,10 @@ class OssAdapter extends AbstractAdapter
                 foreach ($prefixList as $value) {
                     $result[] = [
                         'type' => 'dir',
-                        'path' => $value->getPrefix()
+                        'path' => $value->getPrefix(),
                     ];
-                    if ($recursive) {
-                        $result = array_merge($result, $this->listContents($value->getPrefix(), $recursive));
+                    if ($deep) {
+                        $result = array_merge($result, $this->listContents($value->getPrefix(), $deep));
                     }
                 }
             }
@@ -328,10 +249,10 @@ class OssAdapter extends AbstractAdapter
                         continue;
                     }
                     $result[] = [
-                        'type'      => 'file',
-                        'path'      => $value->getKey(),
+                        'type' => 'file',
+                        'path' => $value->getKey(),
                         'timestamp' => strtotime($value->getLastModified()),
-                        'size'      => $value->getSize()
+                        'size' => $value->getSize(),
                     ];
                 }
             }
@@ -357,85 +278,59 @@ class OssAdapter extends AbstractAdapter
 
     /**
      * Get the size of a file.
-     *
-     * @param string $path
-     *
-     * @return array|false
      */
-    public function getSize($path)
+    public function fileSize(string $path): FileAttributes
     {
         $response = $this->oss->getObjectMeta($this->bucket, $path);
-        return [
-            'size' => $response['content-length']
-        ];
+        return new FileAttributes($path, $response['content-length']);
     }
 
     /**
      * Get the mimetype of a file.
-     *
-     * @param string $path
-     *
-     * @return array|false
      */
-    public function getMimetype($path)
+    public function mimeType(string $path): FileAttributes
     {
         $response = $this->oss->getObjectMeta($this->bucket, $path);
-        return [
-            'mimetype' => $response['content-type']
-        ];
+        return new FileAttributes($path, null, null, null, $response['content-type']);
     }
 
     /**
      * Get the timestamp of a file.
-     *
-     * @param string $path
-     *
-     * @return array|false
      */
-    public function getTimestamp($path)
+    public function lastModified(string $path): FileAttributes
     {
         $response = $this->oss->getObjectMeta($this->bucket, $path);
-        return [
-            'timestamp' => $response['last-modified']
-        ];
+
+        return new FileAttributes($path, null, null, $response['last-modified']);
     }
 
     /**
      * Get the visibility of a file.
-     *
-     * @param string $path
-     *
-     * @return array|false
      */
-    public function getVisibility($path)
+    public function visibility(string $path): FileAttributes
     {
         $response = $this->oss->getObjectAcl($this->bucket, $path);
-        return [
-            'visibility' => $response,
-        ];
+        return new FileAttributes($path, null, $response);
     }
 
     /**
-     * Get OSS Options
-     * @param Config $config
-     * @return array
+     * Get OSS Options.
      */
-    private function getOssOptions(Config $config)
+    private function getOssOptions(Config $config): array
     {
         $options = [];
-        if ($config->has("headers")) {
-            $options['headers'] = $config->get("headers");
+        if ($headers = $config->get('headers')) {
+            $options['headers'] = $headers;
         }
 
-        if ($config->has("Content-Type")) {
-            $options["Content-Type"] = $config->get("Content-Type");
+        if ($contentType = $config->get('Content-Type')) {
+            $options['Content-Type'] = $contentType;
         }
 
-        if ($config->has("Content-Md5")) {
-            $options["Content-Md5"] = $config->get("Content-Md5");
-            $options["checkmd5"]    = false;
+        if ($contentMd5 = $config->get('Content-Md5')) {
+            $options['Content-Md5'] = $contentMd5;
+            $options['checkmd5'] = false;
         }
         return $options;
     }
-
 }

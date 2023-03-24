@@ -22,13 +22,16 @@
     "wiki": "https://github.com/xxtime"
   },
   "require": {
-    "php": ">=5.5.0",
-    "league/flysystem": "^1.0.49",
+    "php": ">=7.2",
+    "league/flysystem": "^2.1.1",
     "aliyuncs/oss-sdk-php": "~2.3"
   },
   "autoload": {
     "psr-4": {
       "Xxtime\\Flysystem\\Aliyun\\": "src/"
     }
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.0"
   }
 }
