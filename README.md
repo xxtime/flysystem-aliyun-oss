@@ -49,10 +49,7 @@ $raw = $aliyun->supports->getFlashData();
 
 // Write Use writeStream
 $stream = fopen('local/path/to/file.txt', 'r+');
-$result = $filesystem->writeStream('path/to/file.txt', $stream);
-if (is_resource($stream)) {
-    fclose($stream);
-}
+$filesystem->writeStream('path/to/file.txt', $stream);
 
 // Update Files
 $filesystem->update('path/to/file.txt', 'new contents');
