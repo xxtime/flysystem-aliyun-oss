@@ -4,41 +4,28 @@ declare(strict_types=1);
 
 namespace Xxtime\Flysystem\Aliyun;
 
-use Exception;
 use League\Flysystem\Config;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\UnableToWriteFile;
+use OSS\Core\OssException;
 use OSS\OssClient;
 
 class OssAdapter implements FilesystemAdapter
 {
-    /**
-     * @var Supports
-     */
-    public $supports;
+    public Supports $supports;
 
-    /**
-     * @var OssClient
-     */
-    private $oss;
+    private OssClient $oss;
 
-    /**
-     * @var AliYun bucket
-     */
-    private $bucket;
+    private string $bucket;
 
-    /**
-     * @var string
-     */
-    private $endpoint = 'oss-cn-hangzhou.aliyuncs.com';
+    private string $endpoint = 'oss-cn-hangzhou.aliyuncs.com';
 
     /**
      * OssAdapter constructor.
-     * @param array $config
-     * @throws Exception
+     * @throws \Exception
      */
-    public function __construct($config = [])
+    public function __construct(array $config)
     {
         $isCName = false;
         $token = null;
@@ -78,6 +65,7 @@ class OssAdapter implements FilesystemAdapter
      * Write a new file using a stream.
      *
      * @param resource $contents
+     * @throws OssException
      */
     public function writeStream(string $path, $contents, Config $config): void
     {
@@ -126,8 +114,6 @@ class OssAdapter implements FilesystemAdapter
 
     /**
      * Delete a directory.
-     *
-     * @param string $dirname
      *
      * @return bool
      */
@@ -204,10 +190,8 @@ class OssAdapter implements FilesystemAdapter
     /**
      * List contents of a directory.
      *
-     * @param string $directory
-     * @param bool $recursive
-     *
      * @return array
+     * @throws OssException
      */
     public function listContents(string $path, bool $deep): iterable
     {
@@ -265,18 +249,6 @@ class OssAdapter implements FilesystemAdapter
     }
 
     /**
-     * Get all the meta data of a file or directory.
-     *
-     * @param string $path
-     *
-     * @return array|false
-     */
-    public function getMetadata($path)
-    {
-        return $this->oss->getObjectMeta($this->bucket, $path);
-    }
-
-    /**
      * Get the size of a file.
      */
     public function fileSize(string $path): FileAttributes
@@ -311,6 +283,23 @@ class OssAdapter implements FilesystemAdapter
     {
         $response = $this->oss->getObjectAcl($this->bucket, $path);
         return new FileAttributes($path, null, $response);
+    }
+
+    public function directoryExists(string $path): bool
+    {
+        return false;
+    }
+
+    /**
+     * Get all the meta data of a file or directory.
+     *
+     * @param string $path
+     *
+     * @return array|false
+     */
+    public function getMetadata($path)
+    {
+        return $this->oss->getObjectMeta($this->bucket, $path);
     }
 
     /**

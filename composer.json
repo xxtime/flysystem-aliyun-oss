@@ -1,7 +1,7 @@
 {
   "name": "xxtime/flysystem-aliyun-oss",
   "type": "library",
-  "description": "AliYun OSS adapter for flysystem. aliyuncs/oss-sdk-php ~2.3",
+  "description": "AliYun OSS adapter for flysystem. Support PHP8. aliyuncs/oss-sdk-php ~2.6",
   "keywords": [
     "flysystem-aliyun-oss",
     "aliyun-oss",
@@ -22,9 +22,9 @@
     "wiki": "https://github.com/xxtime"
   },
   "require": {
-    "php": ">=7.2",
-    "league/flysystem": "^2.1.1",
-    "aliyuncs/oss-sdk-php": "~2.3"
+    "php": ">=8.0",
+    "league/flysystem": "^3.23.0",
+    "aliyuncs/oss-sdk-php": "~2.6"
   },
   "autoload": {
     "psr-4": {
@@ -32,6 +32,6 @@
     }
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "^3.0"
+    "friendsofphp/php-cs-fixer": "^3.41"
   }
 }
