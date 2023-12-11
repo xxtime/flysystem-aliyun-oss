@@ -18,7 +18,10 @@ composer require xxtime/flysystem-aliyun-oss
 ##### 1.3.0 
  1. some args name changed  
  2. default region oss-cn-hangzhou  
-
+##### 1.7.0
+1. support flysystem v3
+2. support oss-sdk-php 2.6
+3. support PHP8
 
 ## Usage
 
