@@ -287,7 +287,7 @@ class OssAdapter implements FilesystemAdapter
 
     public function directoryExists(string $path): bool
     {
-        return false;
+        return $this->oss->doesObjectExist($this->bucket, $path);
     }
 
     /**
